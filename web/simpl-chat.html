@@ -2,7 +2,7 @@
 /**
  * This file is part of SIMPL4(http://simpl4.org).
  *
- * 	Copyright [2014] [Manfred Sattler] <manfred@ms123.org>
+ *      Copyright [2014] [Manfred Sattler] <manfred@ms123.org>
  *
  * SIMPL4 is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,7 +216,7 @@
 
                 <span style="color:#D50303;">[[currentChat.chatState]]</span>
                 <div class="bottom fit horizontal layout">
-                  <paper-tabs selected="{{chatId}}" selectables="paper-tab" style="max-width:600px;" attr-for-selected="chat-id" scrollable>
+                  <paper-tabs selected="{{chatId}}" selectables="paper-tab" style="max-width:600px;" attr-for-selected="chat-id" id="chatTabId" scrollable>
                     <template is="dom-repeat" as="chat" items="{{chatList}}">
                       <paper-tab chat-id$="[[chat.id]]">[[chat.id]]</paper-tab>
                     </template>
@@ -477,8 +477,10 @@
             var chatId = this.getNameFromJid( message.from );
             var chat = this.chatHash[ chatId ];
             if ( chat ) {
-              chat.presence = message.presence;
-              console.log( "chat.presence:" + JSON.stringify( chat, null, 2 ) );
+              var index = this.getChatIndex( chat );
+              console.log( "index:", index );
+              this.set( "chatList." + index + ".presence", message.presence );
+              console.log( "chat.presence:", this.chatList[ index ].presence );
             }
           }
         },
@@ -609,25 +611,27 @@
             return;
           }
           var chat = {};
-          chat.id = formData.room[ 0 ].name;
-          chat.description = formData.room[ 0 ].description;
+          chat.id = formData.room.length ? formData.room[ 0 ].name : formData.room.name;
+          chat.description = formData.room.length ? formData.room[ 0 ].description : formData.room.description;
           if ( this.chatHash[ chat.id ] ) {
-            this.chatId = chat.id;
+            this.set( "chatId", chat.id );
+            this.$.chatTabId.selected = chat.id;
             return;
           }
           chat.messages = [];
           chat.type = 'groupchat';
           this.addChat( chat );
           this.async( function() {
-            this.chatId = chat.id;
+            this.set( "chatId", chat.id );
             this.sendJoin();
           }, null, 300 );
+          this.$.chatTabId.selected = chat.id;
         },
         openSingleChat: function() {
           var participant = $( this.querySelector( "#participant-" + this.chatId ) ).val();
           var chat = {};
           chat.id = this.getNameFromJid( participant );
-          //				chat.messages = [{time:new Date(),body:'ddddd'}];
+          //                            chat.messages = [{time:new Date(),body:'ddddd'}];
           chat.participant = participant;
           chat.type = 'singlechat';
           this.addChat( chat );
@@ -636,7 +640,7 @@
           $( this.querySelector( "#participant-" + this.chatId ) ).val( null );
           this.isCurrentParticipant = false;
           try {
-            this.chatId = chat.id;
+            this.set( "chatId", chat.id );
           } catch ( e ) {}
         },
         showLeaveRoomForm: function() {
@@ -899,7 +903,7 @@
             }
           }
           this.chatHash = this.toHash( this.chatList );
-          this.chatId = "main";
+          this.set( "chatId", "main" );
         },
         addChat: function( chat ) {
           chat.messages = [];
@@ -912,6 +916,13 @@
         arrayClear: function( a ) {
           if ( a.length == 0 ) return;
           this.splice( "chatList", 0, a.length );
+        },
+        getChatIndex: function( chat ) {
+          for ( var i = 0; i < this.chatList.length; i++ ) {
+            if ( chat.id === this.chatList[ i ].id ) {
+              return i;
+            }
+          }
         },
         toHash: function( list ) {
           var hash = {}
