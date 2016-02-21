@@ -1,0 +1,5 @@
+- name: Chat(XMPP)
+  url: simpl-chat.html
+  icon: communication:chat
+  help: web/help/chat_%l.adoc
+  hash: 0
