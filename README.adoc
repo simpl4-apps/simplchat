@@ -1,6 +1,7 @@
 :linkattrs:
 :source-highlighter: rouge
 
+image::web/images/logoneu.png[link="http://simpl4.org"]
 
 ==== simplchat(xmpp chat, running in the browser over websocket) ====
 
